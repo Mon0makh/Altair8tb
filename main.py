@@ -113,12 +113,12 @@ def get_rereg_button():
 def on_start(update: Update, context: CallbackContext):
     message = update.message
     user = mondb.users.find_one({"user_id": message.chat.id})
+    logging.info(message.chat.id)
     if not user:
         message.reply_text(
             'Добро пожаловать в Хаб!  Вы не авторизованный пользователь. Пожалуйста войдите в систему!',
             reply_markup=REPLY_KEYBOARD_MARKUP
         )
-        logging.warning(message.chat.id)
     else:
         message.reply_text(
             "Основное меню: ",
@@ -142,7 +142,7 @@ def on_contact(update: Update, context: CallbackContext):
             logging.info("User ID: " + str(message.contact['user_id']))
             logging.warning("User Phone: " + str(user_phone_number))
         user = login_user(mondb, user_chat_id, user_phone_number)
-        logging.warning(user)
+        logging.info(user)
         if not user:
             message.reply_text(
                 'Ошибка! Указанный пользователь не найден.',
@@ -175,7 +175,7 @@ def on_contact(update: Update, context: CallbackContext):
 # User Register
 def login_user(mondb, user_id, user_phone_number):
     user = mondb.users.find_one({"user_phone": user_phone_number})
-    logging.warning("user_phone: " + str(user_phone_number))
+    logging.info("user_phone: " + str(user_phone_number))
     if user != None and user.get('user_id') is None:
         mondb.users.update_one(
             {'_id': user['_id']},
@@ -216,6 +216,57 @@ def do_changephone(update: Update, context: CallbackContext):
         update.message.reply_text(
             'Ошибка! Не соответсвие данных!',
         )
+
+def do_sendmessage(update: Update, context: CallbackContext):
+    lead_message = update.message.text
+    user = mondb.users.find_one({"user_id": update.message.chat_id})
+    user_lead = int(user.get("user_hubs") / 1000000)
+    if user_lead == 1:
+        update.message.reply_text(
+            'Только Лид может отправлять общую задачу!',
+        )
+    else:
+        # Slot choice
+        # TODO inline mode
+        if len(lead_message) > 11:
+            if lead_message[10] == '0':
+                for x in mondb.users.find({"lead": True}):
+                    if not (x.get("user_id") is None):
+                        if str(x.get("user_hubs"))[0] == lead_message[12]:
+                            context.bot.send_message(
+                                chat_id=x.get("user_id"),
+                                text=lead_message[11:],
+                            )
+            if lead_message[10] == '1':
+                for x in mondb.users.find({"lead": True}):
+                    if not (x.get("user_id") is None):
+                        context.bot.send_message(
+                            chat_id=x.get("user_id"),
+                            text=lead_message[11:],
+                        )
+            if lead_message[10] == '2':
+                for x in mondb.users.find():
+                    if not (x.get("user_id") is None):
+                        if str(x.get("user_hubs"))[user_lead-1] == '1':
+                            context.bot.send_message(
+                                chat_id=x.get("user_id"),
+                                text=lead_message[11:],
+                            )
+            if lead_message[10] == '3':
+                for x in mondb.users.find():
+                    if not (x.get("user_id") is None):
+                        context.bot.send_message(
+                            chat_id=x.get("user_id"),
+                            text=lead_message[11:],
+                        )
+            else:
+                update.message.reply_text(
+                    'Неверно указан ключ отправления!',
+                )
+        else:
+            update.message.reply_text(
+                'Слишком короткое сообщение!',
+            )
 # Sticker Time! Dont Touch!
 #
 # def handle_docs_audio(update: Update, context: CallbackContext):
@@ -276,10 +327,10 @@ def keyboard_call_handler(update: Update, context: CallbackContext):
         )
         # TODO Local audio need
         context.bot.send_sticker(chatid, 'CAACAgEAAxkBAAIDMV92U2Sk4DVLErXtBFPWgQhfmqh1AAJhAAPArAgjT8wG8ZJFRc0bBA')
-        for i in range(1, 2):
+        for i in range(1, 7):
             context.bot.send_audio(
                 chat_id=chatid,
-                audio='https://cdndl.zaycev.net/track/1824177/4Ehsii9FgoD6ZoprRLM9h3rm2gX5qEZ9SjYWXSxJqLHXr3rmeJSPaWwMoYF2V1iKUW9H4UEmyfd6aMNSXbtSKJjQpUuucgvW5s6kfvqauwLRyBkrGm1ktbB78DDtQUF3vDbnWZBdJhU91rCtpz8pSJcxtM5E7Cd7x2cE1UL6ia5xJJVwVPwyuFnBzA2XiVmWTYkX3DsGLUGxiPHEQ4ehtrvSiprexHRwnHp5uvbm2S5VzZPiMP2CJSB5o1n5GFAqSLpT1bjS8VmW49Vhnya1FZBx3VXH5soVsf2QzddYkHNaFyBmpfdgRCz9Z4JbscxiVZ9izQNuFYCDhpJ5H1vMFTVmR6Ag3TUu3dsjXMFJB5CrfdCKSw1L',
+                audio='https://raw.githubusercontent.com/POSE1D0N-AP/Altair8tb/master/music%20of%20day/{}.mp3'.format(i),
             )
         context.bot.send_message(
             chat_id=chatid,
@@ -288,7 +339,7 @@ def keyboard_call_handler(update: Update, context: CallbackContext):
         )
     elif data == CALLBACK_MM_SCHLED:
         chatid = update.effective_message.chat_id
-        user = mondb.users.find_one({"user_id": update.message.chat_id})
+        user = mondb.users.find_one({"user_id": chatid})
         # TODO add BIGHUB Schledule
         for i in range(1, 7):
             if str(user.get("user_hubs"))[i]:
@@ -352,12 +403,13 @@ def main():
         token=TG_TOKEN,
         use_context=True,
     )
-
+    logging.info("Altair8 started")
     # Commands handler add, IF you u need add new command use it
     dp = updater.dispatcher
     dp.add_handler(CommandHandler('start', on_start))
     dp.add_handler(CommandHandler('editphone', do_changephone))
     dp.add_handler(CommandHandler('addevent', do_addevent))
+    dp.add_handler(CommandHandler('sendtask', do_sendmessage))
     #dp.add_handler(MessageHandler(Filters.sticker, handle_docs_audio))
     dp.add_handler(CallbackQueryHandler(callback=keyboard_call_handler, pass_chat_data=True))
     dp.add_handler(MessageHandler(Filters.contact, on_contact))
