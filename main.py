@@ -331,7 +331,10 @@ def do_changephone(update: Update, context: CallbackContext):
 def do_sendmessage(update: Update, context: CallbackContext):
     lead_message = update.message.text
     user = mondb.users.find_one({"user_id": update.message.chat_id})
-    user_lead = int(user.get("user_hubs") / 1000000)
+    user_lead = 0
+    if user.get('user_hubs') is not None:
+        user_lead = int(user.get("user_hubs") / 1000000)
+
     if user_lead == 1:
         update.message.reply_text(
             'Только Лид может отправлять общую задачу!',
@@ -391,7 +394,10 @@ def do_sendmessage(update: Update, context: CallbackContext):
 def do_addevent(update: Update, context: CallbackContext):
     text = update.message.text
     user = mondb.users.find_one({"user_id": update.message.chat_id})
-    user_lead = int(user.get("user_hubs")/1000000)
+
+    user_lead = 0
+    if user.get('user_hubs') is not None:
+        user_lead = int(user.get("user_hubs")/1000000)
     if user_lead == 1:
         update.message.reply_text(
             'Только Лид может изменять расписание!',
@@ -430,7 +436,7 @@ def keyboard_call_handler(update: Update, context: CallbackContext):
     elif data == CALLBACK_MM_HUB:
         user = mondb.users.find_one({"user_id": update.effective_message.chat_id})
         query.edit_message_text(
-            text="Все двери открыты! \nВся пятерка отерытых Хабов полностью доступна вам: ",
+            text="Все двери открыты! \nВся пятерка открытых Хабов полностью доступна вам: ",
             reply_markup=get_hubs(str(user.get("user_hubs")))
         )
     #    # TODO Inline music add
@@ -484,28 +490,17 @@ def keyboard_call_handler(update: Update, context: CallbackContext):
                 text="Либо здесь что то не так либо в ближайшее время нет запланированных мероприятий.",
             )
     elif data == CALLBACK_MM_CORNER:
-        user = mondb.users.find_one({"user_id": update.effective_message.chat_id})
-        mondb.users.update_one(
-           {'_id': user['_id']},
-           {'$set': {'user_photo': "need"}})
+        # user = mondb.users.find_one({"user_id": update.effective_message.chat_id})
+        # mondb.users.update_one(
+        #    {'_id': user['_id']},
+        #    {'$set': {'user_photo': "need"}})
 
-        if user.get('user_photo') is not None:
-            if user.get('user_photo') != "no" and user.get('user_photo') != "need":
-                context.bot.sendPhoto(chat_id=user['partner'],
-                                      photo=open(file=user.get('user_photo'), mode='rb'))
         query.edit_message_text(
             text="В разделе #CORNER вы можете оставлять информацию о себе и смотреть анкеты других, в поисках \
                     друзей и единомышлеников!\
                     \n\nОбщайтесь и разивайтесь вместе с Хабом! \
                     \n**Данный раздел находится в разработке",
-            reply_markup=get_social_networks()
-        )
-        query.edit_message_text(
-            text="В разделе #CORNER вы можете оставлять информацию о себе и смотреть анкеты других, в поисках \
-                            друзей и единомышлеников!\
-                            \n\nОбщайтесь и разивайтесь вместе с Хабом! \
-                            \n**Данный раздел находится в разработке",
-            reply_markup=get_social_networks()
+            reply_markup=get_back_mm()
         )
         tele_Bot.answer_callback_query(query.id, text="Функция CORNER в разработке 🛠", show_alert=True)
 
@@ -527,8 +522,8 @@ def keyboard_call_handler(update: Update, context: CallbackContext):
                       }}
         )
         query.edit_message_text(
-            text=corn_users[user['corner_page']],
-            reply_markup=get_corner_nav()
+            text=corn_users[user['corner_page']] #,
+           # reply_markup=get_corner_nav()
         )
 
 
