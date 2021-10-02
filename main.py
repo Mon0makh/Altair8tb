@@ -11,11 +11,9 @@ import telebot
 
 from telegram import Bot
 from telegram import Update
-from telegram import ReplyKeyboardMarkup
-from telegram import KeyboardButton
+
 from telegram import ReplyKeyboardRemove
-from telegram import InlineKeyboardButton
-from telegram import InlineKeyboardMarkup
+
 from telegram.ext import CallbackQueryHandler
 from telegram.ext import Updater
 from telegram.ext import CommandHandler
@@ -27,140 +25,21 @@ from config import TG_TOKEN
 from config import MONGODB_LINK
 from config import MONGO_DB
 
+from keyboards import *
+
 import certifi
+
 ca = certifi.where()
-tele_Bot = telebot.TeleBot(TG_TOKEN, parse_mode=None)
+# tele_Bot = telebot.TeleBot(TG_TOKEN, parse_mode=None)
 
 # -------------------------------
 # Bot Logic
 # -------------------------------
 
-
 # bot = Bot(TG_TOKEN)
 
 # Connect to DataBase
 mondb = MongoClient(MONGODB_LINK, tlsCAFile=ca)[MONGO_DB]
-
-# Login Keyboard
-contact_keyboard = KeyboardButton('Войти', request_contact=True)
-custom_keyboard_login = [[contact_keyboard]]
-REPLY_KEYBOARD_MARKUP = ReplyKeyboardMarkup(custom_keyboard_login, resize_keyboard=True)
-
-CALLBACK_MM = "cb_mm"
-CALLBACK_MM_HUB = "cb_mm_hs"
-CALLBACK_MM_CHATS = "cb_mm_ch"
-CALLBACK_MM_SCHEDULE = "cb_mm_sch"
-CALLBACK_MM_TASKS = "cb_mm_ts"
-CALLBACK_MM_TODO = "cb_mm_todo"
-CALLBACK_MM_MUSIC = "cb_mm_mus"
-CALLBACK_MM_SETTING = "cb_mm_setting"
-CALLBACK_MM_ARRadio = "cb_mm_arr"
-CALLBACK_MM_SHOP = "cb_mm_shop"
-CALLBACK_MM_CORNER = "cb_mm_corner"
-CALLBACK_CORNER_LEFT = "cb_cr_lf"
-CALLBACK_CORNER_RIGHT = "cb_cr_rhg"
-CALLBACK_RR = "cb_rr"
-
-
-def get_hubs(bool_list):
-    keyboard = []
-    if int(bool_list[1]):
-        keyboard.append([InlineKeyboardButton("🖥    DEV.HUB", url="https://t.me/joinchat/OPPf1lTKYcszVxfih0m2jw")])
-    if int(bool_list[2]):
-        keyboard.append([InlineKeyboardButton("🔌   HARD.HUB", url="https://t.me/joinchat/OPPf1lh2GTulebNiu34jEw")])
-    if int(bool_list[3]):
-        keyboard.append([InlineKeyboardButton("🗣    SOC.HUB", url="https://t.me/joinchat/OPPf1laFJhzZ6Sx88P0YOQ")])
-    if int(bool_list[4]):
-        keyboard.append([InlineKeyboardButton("🔳    ART.HUB", url="https://t.me/joinchat/OPPf1leFxg4vdBbkler_Xg")])
-    if int(bool_list[5]):
-        keyboard.append([InlineKeyboardButton("🎮   GEEK.HUB", url="https://t.me/HramBoginiBABISA")])
-    keyboard.append([InlineKeyboardButton("⬅️     Назад️", callback_data=CALLBACK_MM)])
-
-    return InlineKeyboardMarkup(keyboard)
-
-def get_social_networks():
-    keyboard = [
-        [
-            InlineKeyboardButton("🌐  Web Site", url='https://www.thehub.su/'),
-        ],
-        [
-            InlineKeyboardButton("📸 Instagram", url='https://instagram.com/thehub.su'),
-        ],
-        [
-            InlineKeyboardButton("✈  Telegram Chanel", url='https://t.me/thehub_su'),
-        ],
-        [
-            InlineKeyboardButton("️🎥  YouTube", url='https://www.youtube.com/channel/UC8luLtn3EhGh0wWqE92sUZA'),
-        ],
-        [
-            InlineKeyboardButton("🎙  Discord", url='https://discord.gg/y6CsTWxtwA'),
-        ],
-        [
-            InlineKeyboardButton("⬅️     Назад️", callback_data=CALLBACK_MM),
-        ],
-    ]
-    return InlineKeyboardMarkup(keyboard)
-
-def get_corner_nav(full_name, username):
-    keyboard = [
-        [
-            InlineKeyboardButton(full_name, url='https://t.me/'+username),
-        ],
-        [
-            InlineKeyboardButton("⬅️", callback_data=CALLBACK_CORNER_LEFT),
-            InlineKeyboardButton("➡️", callback_data=CALLBACK_CORNER_RIGHT),
-        ],
-    ]
-    return InlineKeyboardMarkup(keyboard)
-
-
-
-def get_back_mm():
-    keyboard = [[InlineKeyboardButton("⬅️     Назад️", callback_data=CALLBACK_MM)]]
-    return InlineKeyboardMarkup(keyboard)
-
-# Main Menu
-def get_main_menu():
-    keyboard = [
-        [
-            InlineKeyboardButton("🕸  Small HUBs", callback_data=CALLBACK_MM_HUB),
-        ],
-        [
-            InlineKeyboardButton("📆 Расписание", callback_data=CALLBACK_MM_SCHEDULE),
-            InlineKeyboardButton("📋 Задачи", callback_data=CALLBACK_MM_TASKS),
-        ],
-        [
-            InlineKeyboardButton("▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰", callback_data='null'),
-        ],
-        [
-            InlineKeyboardButton("🎵  Art.Hub Radio", url='https://t.me/arthub_radio'),
-        ],
-        [
-            InlineKeyboardButton("💎  Corner", callback_data=CALLBACK_MM_CORNER),
-        ],
-        [
-            InlineKeyboardButton("🛒  Shop", callback_data=CALLBACK_MM_SHOP),
-        ],
-        [
-            InlineKeyboardButton("ℹ️  Дополнительно️", callback_data=CALLBACK_MM_SETTING),
-        ],
-    ]
-    return InlineKeyboardMarkup(keyboard)
-
-
-def get_rereg_button():
-    keyboard = [
-        [
-            InlineKeyboardButton("📲  Сменить номер", callback_data=CALLBACK_RR),
-        ],
-        [
-            InlineKeyboardButton("Служба поддержки", url="https://t.me/HUBsup"),
-        ],
-        [
-            InlineKeyboardButton("🔥 Наш сайт! ", url="https://www.thehub.su")
-        ],
-    ]
-    return InlineKeyboardMarkup(keyboard)
 
 
 def on_start(update: Update, context: CallbackContext):
@@ -178,41 +57,48 @@ def on_start(update: Update, context: CallbackContext):
             "Основное меню: ",
             reply_markup=get_main_menu()
         )
+        # mondb.users.update_one(
+        #     {'_id': user['_id']},
+        #     {'$set':
+        #          {'user_photo': "user_photos/" + str(user['user_id']) + ".jpg"}
+        #      })
 
 
-def get_photo(update: Update, context: CallbackContext):
-    user = mondb.users.find_one({"user_id": update.message.chat.id})
-    query = update.callback_query
-    if user.get('user_photo') is not None:
-        if user.get('user_photo') == "need":
-            fileID = update.message.photo[-1].file_id
-            file_info = tele_Bot.get_file(fileID)
-            downloaded_file = tele_Bot.download_file(file_info.file_path)
-            with open("user_photos/" + str(user['user_id']) + ".jpg", 'wb') as new_file:
-                new_file.write(downloaded_file)
+# def get_photo(update: Update, context: CallbackContext):
+#     user = mondb.users.find_one({"user_id": update.message.chat.id})
+#     query = update.callback_query
+#     if user.get('user_photo') is not None:
+#         if user.get('user_photo') == "need":
+#             fileID = update.message.photo[-1].file_id
+#             file_info = tele_Bot.get_file(fileID)
+#             downloaded_file = tele_Bot.download_file(file_info.file_path)
+#             with open("user_photos/" + str(user['user_id']) + ".jpg", 'wb') as new_file:
+#                 new_file.write(downloaded_file)
+#
+#             mondb.users.update_one(
+#                 {'_id': user['_id']},
+#                 {'$set':
+#                      {'user_photo': "user_photos/" + str(user['user_id']) + ".jpg"}
+#                  })
+#
+#             context.bot.send_message(
+#                 chat_id=user['user_id'],
+#                 text="Фото успешно добавлено!",
+#                 reply_markup=ReplyKeyboardRemove(),
+#             )
+#             context.bot.send_message(
+#                 chat_id=user['user_id'],
+#                 text="Главное меню:",
+#                 reply_markup=get_projects_menu(),
+#             )
 
-            mondb.users.update_one(
-                {'_id': user['_id']},
-                {'$set':
-                     {'user_photo': "user_photos/" + str(user['user_id']) + ".jpg"}
-                })
-
-            context.bot.send_message(
-                    chat_id=user['user_id'],
-                    text="Фото успешно добавлено!",
-                    reply_markup=ReplyKeyboardRemove(),
-            )
-            context.bot.send_message(
-                chat_id=user['user_id'],
-                text="Главное меню:",
-                reply_markup=get_main_menu(),
-            )
 
 def handle_text(update: Update, context: CallbackContext):
     message = update.message
     query = update.callback_query
     user = mondb.users.find_one({"user_id": update.effective_message.chat_id})
     text = update.message.text
+
     if user is None:
         return
 
@@ -224,15 +110,27 @@ def handle_text(update: Update, context: CallbackContext):
                           }
                  })
             context.bot.send_message(
-                    chat_id=user['user_id'],
-                    text="Описание успешно добавлено!",
-                    reply_markup=ReplyKeyboardRemove(),
+                chat_id=user['user_id'],
+                text="Описание успешно добавлено!",
+                reply_markup=ReplyKeyboardRemove(),
             )
             context.bot.send_message(
                 chat_id=user['user_id'],
                 text="Главное меню:",
                 reply_markup=get_main_menu(),
             )
+    if user.get('wait_project') is not None:
+        if user.get('wait_project') is not "n":
+            mondb.projects_applic.insert_one({'user_full_name': user.get['']},
+                                      {'user_phone': user.get['phone_number']},
+                                      {'project': user.get('wait_project')},
+                                      {'text': text})
+            mondb.users.update_one(
+                {'_id': user['_id']},
+                {'$set': {'wait_project': "n"}})
+            query.edit_message_text(text="Заявка на участие в проекте " + user.get('wait_project').split('_')[-1] +
+                                    " принята! Координатор проекта обработает заявку в течении нескольких дней.",
+                                    reply_markup=get_main_menu())
 
 
 # IF user message == contact
@@ -282,6 +180,7 @@ def on_contact(update: Update, context: CallbackContext):
             reply_markup=ReplyKeyboardRemove()
         )
 
+
 # User Register
 def login_user(mondb, user_id, user_phone_number):
     user = mondb.users.find_one({"user_phone": user_phone_number})
@@ -294,6 +193,7 @@ def login_user(mondb, user_id, user_phone_number):
         return user
     else:
         return None
+
 
 # Command to edit phone number from DB
 def do_changephone(update: Update, context: CallbackContext):
@@ -328,6 +228,7 @@ def do_changephone(update: Update, context: CallbackContext):
             'Ошибка! Не соответсвие данных!',
         )
 
+
 def do_sendmessage(update: Update, context: CallbackContext):
     lead_message = update.message.text
     user = mondb.users.find_one({"user_id": update.message.chat_id})
@@ -361,7 +262,7 @@ def do_sendmessage(update: Update, context: CallbackContext):
             if lead_message[10] == '2':
                 for x in mondb.users.find():
                     if not (x.get("user_id") is None):
-                        if str(x.get("user_hubs"))[user_lead-1] == '1':
+                        if str(x.get("user_hubs"))[user_lead - 1] == '1':
                             context.bot.send_message(
                                 chat_id=x.get("user_id"),
                                 text=lead_message[11:],
@@ -382,6 +283,7 @@ def do_sendmessage(update: Update, context: CallbackContext):
                 'Слишком короткое сообщение!',
             )
 
+
 # Sticker Time! Dont Touch!
 #
 # def handle_docs_audio(update: Update, context: CallbackContext):
@@ -397,7 +299,7 @@ def do_addevent(update: Update, context: CallbackContext):
 
     user_lead = 0
     if user.get('user_hubs') is not None:
-        user_lead = int(user.get("user_hubs")/1000000)
+        user_lead = int(user.get("user_hubs") / 1000000)
     if user_lead == 1:
         update.message.reply_text(
             'Только Лид может изменять расписание!',
@@ -407,31 +309,32 @@ def do_addevent(update: Update, context: CallbackContext):
         # TODO Edit this command, automatic slot choice
         if text[10] == '1':
             mondb.allschledule.update_one(
-                {'hub_id': user_lead-1},
+                {'hub_id': user_lead - 1},
                 {'$set': {'event1': text[12:]}}
             )
         if text[10] == '2':
             mondb.allschledule.update_one(
-                {'hub_id': user_lead-1},
+                {'hub_id': user_lead - 1},
                 {'$set': {'event2': text[12:]}}
             )
         if text[10] == '3':
             mondb.allschledule.update_one(
-                {'hub_id': user_lead-1},
+                {'hub_id': user_lead - 1},
                 {'$set': {'event3': text[12:]}}
             )
+
 
 # Telegram inline menu buttons handler
 def keyboard_call_handler(update: Update, context: CallbackContext):
     query = update.callback_query
     data = query.data
 
-    # bot.answer_callback_query(query.id, text="Всплывашка!", show_alert=True)
+    # query.answer_callback_query(query.id, text="Всплывашка!", show_alert=True)
 
     if data == CALLBACK_MM:
         query.edit_message_text(
             text="Основное меню: ",
-            reply_markup=get_main_menu()
+            reply_markup=get_projects_menu()
         )
     elif data == CALLBACK_MM_HUB:
         user = mondb.users.find_one({"user_id": update.effective_message.chat_id})
@@ -502,7 +405,40 @@ def keyboard_call_handler(update: Update, context: CallbackContext):
                     \n**Данный раздел находится в разработке",
             reply_markup=get_back_mm()
         )
-        tele_Bot.answer_callback_query(query.id, text="Функция CORNER в разработке 🛠", show_alert=True)
+        context.bot.answer_callback_query(query.id, text="Функция CORNER в разработке 🛠", show_alert=True)
+
+    elif data == CALLBACK_MM_PROJECTS:
+        query.edit_message_text(
+            text="Выберите проект на который вы хотите подать заявку:",
+            reply_markup=get_projects_menu()
+        )
+
+    elif data == CALLBACK_PROJECTS_WS or \
+            data == CALLBACK_PROJECTS_HS or \
+            data == CALLBACK_PROJECTS_HM or \
+            data == CALLBACK_PROJECTS_PUB or \
+            data == CALLBACK_PROJECTS_GS:
+        project_name = data.split("_")[-1]
+
+        query.edit_message_text(
+            text="Проект: " + project_name + "\n\nОпишите одним сообщением какая деятельность \
+                                             в проекте вас интересует, \
+                                             свой опыт в сфере и чем бы вы хотели заниматься в рамках этого проекта.",
+            reply_markup=get_projects_menu()
+        )
+
+        user = mondb.users.find_one({"user_id": update.effective_message.chat_id})
+        mondb.users.update_one(
+            {'_id': user['_id']},
+            {'$set': {'wait_project': data}})
+
+
+    # TODO!!!!!
+    elif data == CALLBACK_PROJECTS_UP:
+        query.edit_message_text(
+            text="Выберите проект на который вы хотите подать заявку:",
+            reply_markup=get_projects_menu()
+        )
 
     elif data == CALLBACK_CORNER_RIGHT or data == CALLBACK_CORNER_LEFT:
         user = mondb.users.find_one({"user_id": update.effective_message.chat_id})
@@ -522,13 +458,13 @@ def keyboard_call_handler(update: Update, context: CallbackContext):
                       }}
         )
         query.edit_message_text(
-            text=corn_users[user['corner_page']] #,
-           # reply_markup=get_corner_nav()
+            text=corn_users[user['corner_page']]  # ,
+            # reply_markup=get_corner_nav()
         )
 
 
-    elif data == CALLBACK_MM_SHOP:
-        tele_Bot.answer_callback_query(query.id, text="Функция SHOP в разработке 🛠", show_alert=True)
+    # elif data == CALLBACK_MM_SHOP:
+        # telebot.answer_callback_query(query.id, text="Функция SHOP в разработке 🛠", show_alert=True)
 
     elif data == CALLBACK_MM_SETTING:
         query.edit_message_text(
@@ -537,8 +473,8 @@ def keyboard_call_handler(update: Update, context: CallbackContext):
             \n\nПодписывайтесь на нас в социальных сетях, что бы ничего не пропустить!",
             reply_markup=get_social_networks()
         )
-    elif data == CALLBACK_MM_TASKS:
-        tele_Bot.answer_callback_query(query.id, text="У вас нет активных задач!", show_alert=True)
+    #elif data == CALLBACK_MM_TASKS:
+        # tele_Bot.answer_callback_query(query.id, text="У вас нет активных задач!", show_alert=True)
 
     elif data == CALLBACK_RR:
         query.edit_message_text(
@@ -565,7 +501,7 @@ def main():
     # dp.add_handler(MessageHandler(Filters.sticker, handle_docs_audio))
     dp.add_handler(CallbackQueryHandler(callback=keyboard_call_handler, pass_chat_data=True))
     dp.add_handler(MessageHandler(Filters.contact, on_contact))
-    dp.add_handler(MessageHandler(Filters.photo, get_photo))
+    # dp.add_handler(MessageHandler(Filters.photo, get_photo))
     dp.add_handler(MessageHandler(Filters.text, handle_text))
     updater.start_polling()
     updater.idle()
