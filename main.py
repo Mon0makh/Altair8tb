@@ -7,7 +7,6 @@ from pymongo import MongoClient
 
 import logging
 
-import telebot
 
 from telegram import Bot
 from telegram import Update
@@ -101,36 +100,43 @@ def handle_text(update: Update, context: CallbackContext):
 
     if user is None:
         return
-
-    if user.get('user_description') is not None:
-        if user.get('user_description') == "need":
-            mondb.ValentineEvent_users.update_one(
-                {'_id': user['_id']},
-                {'$set': {'user_description': text,
-                          }
-                 })
-            context.bot.send_message(
-                chat_id=user['user_id'],
-                text="Описание успешно добавлено!",
-                reply_markup=ReplyKeyboardRemove(),
-            )
-            context.bot.send_message(
-                chat_id=user['user_id'],
-                text="Главное меню:",
-                reply_markup=get_main_menu(),
-            )
+    #
+    # if user.get('user_description') is not None:
+    #     if user.get('user_description') == "need":
+    #         mondb.ValentineEvent_users.update_one(
+    #             {'_id': user['_id']},
+    #             {'$set': {'user_description': text,
+    #                       }
+    #              })
+    #         context.bot.send_message(
+    #             chat_id=user['user_id'],
+    #             text="Описание успешно добавлено!",
+    #             reply_markup=ReplyKeyboardRemove(),
+    #         )
+    #         context.bot.send_message(
+    #             chat_id=user['user_id'],
+    #             text="Главное меню:",
+    #             reply_markup=get_main_menu(),
+    #         )
     if user.get('wait_project') is not None:
-        if user.get('wait_project') is not "n":
-            mondb.projects_applic.insert_one({'user_full_name': user.get['']},
-                                      {'user_phone': user.get['phone_number']},
-                                      {'project': user.get('wait_project')},
-                                      {'text': text})
-            mondb.users.update_one(
-                {'_id': user['_id']},
-                {'$set': {'wait_project': "n"}})
-            query.edit_message_text(text="Заявка на участие в проекте " + user.get('wait_project').split('_')[-1] +
-                                    " принята! Координатор проекта обработает заявку в течении нескольких дней.",
-                                    reply_markup=get_main_menu())
+        if user.get('wait_project') != "n":
+            try:
+                mondb.projects_applic.insert_one({'user_full_name': user.get('user_name'),
+                                                  'user_phone': user.get('user_phone'),
+                                                  'project': user.get('wait_project'),
+                                                  'text': text})
+                mondb.users.update_one(
+                    {'_id': user['_id']},
+                    {'$set': {'wait_project': "n"}})
+                context.bot.send_message(chat_id=user['user_id'],
+                                         text="*Заявка на участие в проекте " + user.get('wait_project').split('_')[
+                                             -1] +
+                                              " принята! Координатор проекта обработает заявку в течении нескольких дней.",
+                                         reply_markup=get_back_mm())
+            except:
+                context.bot.send_message(chat_id=user['user_id'],
+                                         text="Ooops... \n\nКажется что то пошло не так, повторите попытку позже.",
+                                         reply_markup=get_back_mm())
 
 
 # IF user message == contact
@@ -170,7 +176,7 @@ def on_contact(update: Update, context: CallbackContext):
                 reply_markup=ReplyKeyboardRemove()
             )
             message.reply_text(
-                'Вас приветсвует Altair8 - интерфейс взаимодействия с H.U.B. ver 0.1. Интересного вам времяпрепровождения!\
+                'Вас приветсвует Altair8 - интерфейс взаимодействия с H.U.B. ver 0.2.5 Интересного вам времяпрепровождения!\
                  \nОсновное меню:',
                 reply_markup=get_main_menu()
             )
@@ -230,12 +236,18 @@ def do_changephone(update: Update, context: CallbackContext):
 
 
 def do_sendmessage(update: Update, context: CallbackContext):
-    lead_message = update.message.text
-    user = mondb.users.find_one({"user_id": update.message.chat_id})
     user_lead = 0
-    if user.get('user_hubs') is not None:
-        user_lead = int(user.get("user_hubs") / 1000000)
+    try:
+        lead_message = update.message.text
+        user = mondb.users.find_one({"user_id": update.message.chat_id})
 
+        if user.get('user_hubs') is not None:
+            user_lead = int(user.get("user_hubs") / 1000000)
+    except:
+        update.message.reply_text(
+            'Пожалуйста пройдите регистрацию!',
+        )
+        return
     if user_lead == 1:
         update.message.reply_text(
             'Только Лид может отправлять общую задачу!',
@@ -334,7 +346,7 @@ def keyboard_call_handler(update: Update, context: CallbackContext):
     if data == CALLBACK_MM:
         query.edit_message_text(
             text="Основное меню: ",
-            reply_markup=get_projects_menu()
+            reply_markup=get_main_menu()
         )
     elif data == CALLBACK_MM_HUB:
         user = mondb.users.find_one({"user_id": update.effective_message.chat_id})
@@ -419,26 +431,40 @@ def keyboard_call_handler(update: Update, context: CallbackContext):
             data == CALLBACK_PROJECTS_PUB or \
             data == CALLBACK_PROJECTS_GS:
         project_name = data.split("_")[-1]
-
-        query.edit_message_text(
-            text="Проект: " + project_name + "\n\nОпишите одним сообщением какая деятельность \
-                                             в проекте вас интересует, \
-                                             свой опыт в сфере и чем бы вы хотели заниматься в рамках этого проекта.",
-            reply_markup=get_projects_menu()
-        )
-
         user = mondb.users.find_one({"user_id": update.effective_message.chat_id})
         mondb.users.update_one(
             {'_id': user['_id']},
             {'$set': {'wait_project': data}})
 
-
-    # TODO!!!!!
-    elif data == CALLBACK_PROJECTS_UP:
         query.edit_message_text(
-            text="Выберите проект на который вы хотите подать заявку:",
-            reply_markup=get_projects_menu()
+            text="Проект: \"" + project_name + "\"\n\nОпишите одним сообщением какая деятельность " +
+                 "в проекте вас интересует, свой опыт в сфере и чем бы вы хотели заниматься в рамках этого проекта.",
+            reply_markup=get_cancel(),
         )
+
+
+
+    elif data == CALLBACK_PROJECTS_UP:
+        user = mondb.users.find_one({"user_id": update.effective_message.chat_id})
+        mondb.users.update_one(
+            {'_id': user['_id']},
+            {'$set': {'wait_project': data}})
+
+        query.edit_message_text(
+            text="Опишите свой проект который вы хотели бы реализовать вместе с сообществом Хаб.",
+            reply_markup=get_cancel(),
+        )
+
+    elif data == CALLBACK_MM_CANCEL:
+        user = mondb.users.find_one({"user_id": update.effective_message.chat_id})
+        mondb.users.update_one(
+            {'_id': user['_id']},
+            {'$set': {'wait_project': 'n'}})
+        query.edit_message_text(
+            text="Основное меню: ",
+            reply_markup=get_main_menu()
+        )
+
 
     elif data == CALLBACK_CORNER_RIGHT or data == CALLBACK_CORNER_LEFT:
         user = mondb.users.find_one({"user_id": update.effective_message.chat_id})
@@ -463,8 +489,8 @@ def keyboard_call_handler(update: Update, context: CallbackContext):
         )
 
 
-    # elif data == CALLBACK_MM_SHOP:
-        # telebot.answer_callback_query(query.id, text="Функция SHOP в разработке 🛠", show_alert=True)
+    elif data == CALLBACK_MM_SHOP:
+        context.bot.answer_callback_query(query.id, text="Функция SHOP в разработке 🛠", show_alert=True)
 
     elif data == CALLBACK_MM_SETTING:
         query.edit_message_text(
@@ -473,8 +499,8 @@ def keyboard_call_handler(update: Update, context: CallbackContext):
             \n\nПодписывайтесь на нас в социальных сетях, что бы ничего не пропустить!",
             reply_markup=get_social_networks()
         )
-    #elif data == CALLBACK_MM_TASKS:
-        # tele_Bot.answer_callback_query(query.id, text="У вас нет активных задач!", show_alert=True)
+    elif data == CALLBACK_MM_TASKS:
+        context.bot.answer_callback_query(query.id, text="У вас нет активных задач!", show_alert=True)
 
     elif data == CALLBACK_RR:
         query.edit_message_text(

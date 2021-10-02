@@ -21,13 +21,14 @@ CALLBACK_MM_ARRadio = "cb_mm_arr"
 CALLBACK_MM_SHOP = "cb_mm_shop"
 CALLBACK_MM_CORNER = "cb_mm_corner"
 CALLBACK_MM_PROJECTS = "cb_mm_projects"
+CALLBACK_MM_CANCEL = "cb_nav_cancel"
 CALLBACK_CORNER_LEFT = "cb_cr_lf"
 CALLBACK_CORNER_RIGHT = "cb_cr_rhg"
 CALLBACK_RR = "cb_rr"
 
 CALLBACK_PROJECTS_PUB = "cb_pr_PlanetDotHub"
 CALLBACK_PROJECTS_GS = "cb_pr_RedHex Game Studio"
-CALLBACK_PROJECTS_HM = "cb_pr_HUB.MEDIA"
+CALLBACK_PROJECTS_HM = "cb_pr_HUB MEDIA"
 CALLBACK_PROJECTS_WS = "cb_pr_theHub Web Studio"
 CALLBACK_PROJECTS_HS = "cb_pr_HUB SCHOOL"
 CALLBACK_PROJECTS_UP = "cb_pr_user_projects"
@@ -92,6 +93,11 @@ def get_back_mm():
     return InlineKeyboardMarkup(keyboard)
 
 
+def get_cancel():
+    keyboard = [[InlineKeyboardButton("❌ Отмена", callback_data=CALLBACK_MM_CANCEL)]]
+    return InlineKeyboardMarkup(keyboard)
+
+
 # Main Menu
 def get_main_menu():
     keyboard = [
@@ -128,22 +134,22 @@ def get_main_menu():
 def get_projects_menu():
     keyboard = [
         [
-            InlineKeyboardButton("🕸  PlanetDotHub", callback_data=CALLBACK_PROJECTS_PUB),
+            InlineKeyboardButton("🪐  PlanetDotHub", callback_data=CALLBACK_PROJECTS_PUB),
         ],
         [
-            InlineKeyboardButton(" Game Studio", callback_data=CALLBACK_PROJECTS_GS),
+            InlineKeyboardButton("🕹 Game Studio", callback_data=CALLBACK_PROJECTS_GS),
         ],
         [
-            InlineKeyboardButton(" HUB.MEDIA", callback_data=CALLBACK_PROJECTS_HM),
+            InlineKeyboardButton("🎥 HUB.MEDIA", callback_data=CALLBACK_PROJECTS_HM),
         ],
         [
-            InlineKeyboardButton(" the Hub School", callback_data=CALLBACK_PROJECTS_HS),
+            InlineKeyboardButton("🏫 the Hub School", callback_data=CALLBACK_PROJECTS_HS),
         ],
         [
-            InlineKeyboardButton("Web Studio", callback_data=CALLBACK_PROJECTS_WS),
+            InlineKeyboardButton("🖥 Web Studio", callback_data=CALLBACK_PROJECTS_WS),
         ],
         [
-            InlineKeyboardButton("\"Я со своим!\"", callback_data=CALLBACK_PROJECTS_UP),
+            InlineKeyboardButton("🎒\"Я со своим!\"", callback_data=CALLBACK_PROJECTS_UP),
         ],
         [
             InlineKeyboardButton(" Назад", callback_data=CALLBACK_MM),
